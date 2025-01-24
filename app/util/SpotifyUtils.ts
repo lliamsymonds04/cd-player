@@ -1,4 +1,4 @@
-const scope = 'user-read-private user-read-email user-read-recently-played user-read-playback-state';
+const scope = 'user-read-private user-read-email user-read-recently-played user-read-playback-state user-modify-playback-state';
 
 function generateRandomString (length: number) {
     const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -108,4 +108,53 @@ export async function getPlaying(access_code: string) {
         //not playing
 
     }
+}
+
+export async function playSpotify() {
+    const access_token = localStorage.getItem("spotify_access_token")
+    console.log(access_token)
+    const payload = {
+        method: "PUT",
+        headers : {
+            'Authorization': `Bearer ${access_token}`,
+        }
+    }
+
+    const response = await fetch("https://api.spotify.com/v1/me/player/play", payload)
+}
+
+export async function pauseSpotify() {
+    const access_token = localStorage.getItem("spotify_access_token")
+    const payload = {
+        method: "PUT",
+        headers : {
+            'Authorization': `Bearer ${access_token}`,
+        }
+    }
+
+    const response = await fetch("https://api.spotify.com/v1/me/player/pause", payload)
+}
+
+export async function skipTrack() {
+    const access_token = localStorage.getItem("spotify_access_token")
+    const payload = {
+        method: "POST",
+        headers : {
+            'Authorization': `Bearer ${access_token}`,
+        }
+    }
+
+    const response = await fetch("https://api.spotify.com/v1/me/player/next", payload)
+}
+
+export async function previousTrack() {
+    const access_token = localStorage.getItem("spotify_access_token")
+    const payload = {
+        method: "POST",
+        headers : {
+            'Authorization': `Bearer ${access_token}`,
+        }
+    }
+
+    const response = await fetch("https://api.spotify.com/v1/me/player/previous", payload)
 }

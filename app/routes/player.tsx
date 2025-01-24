@@ -2,11 +2,12 @@ import { useEffect, useRef, useState } from "react";
 import type { Route } from "./+types/player";
 import { getPlaying, getRecentlyPlayed } from "~/util/SpotifyUtils";
 import CD from "~/components/CD";
+import Playback from "~/components/Playback";
 
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "player" },
+    { title: "CD Player" },
     { name: "description", content: "cd player" },
   ];
 }
@@ -31,22 +32,23 @@ function findTrackIndex(track: Track, tracks: Track[]) {
 
 export default function Player() {
   const accessToken = useRef<string | null>(null)
-  const [tracks, setTracks] = useState<Track[]>([])
+  const tracks = useRef<Track[]>([])
   const maxTracks = useRef(5)
-
+  const lastPlayedIndex = useRef<number | null>(0)
+  const isPlayButtonPressed = useRef(false)
+  const [isPlaying, setIsPlaying] = useState(false)
   const [playingIndex, setPlayingIndex] = useState<number | null>()
-
-  
-
-  function addTrack(t: Track) {
-    if (findTrackIndex(t, tracks) == null) {
-      setTracks([t, ...tracks.splice(0, maxTracks.current-2)])
-    }
-  }
+  const [currentTrackName, setCurrentTrackName] = useState("")
+  const [currentArtist, setCurrentArtist] = useState("")
 
   async function handlePlaying() {
     if (accessToken.current) {
       const currentlyPlaying = await getPlaying(accessToken.current)
+
+      if (isPlayButtonPressed.current) {
+        isPlayButtonPressed.current = false
+        return
+      }
 
       let newPlayingIndex = null
       if (currentlyPlaying) {
@@ -57,29 +59,44 @@ export default function Player() {
           album: currentlyPlaying.item.album.name
         }
 
-        let disc_index = findTrackIndex(playingTrack, tracks)
+        let disc_index = findTrackIndex(playingTrack, tracks.current)
         
-        if (disc_index) {
-          // newPlayingIndex = disc_index
-        } else { //add the track to the front
-          // console.log([playingTrack, ...tracks.splice(0, maxTracks.current-2)])
-          // setTracks([playingTrack, ...tracks.splice(0, maxTracks.current-2)])
-          setTracks((prevTracks) => [playingTrack, ...prevTracks.splice(0, maxTracks.current-2)])
-          // newPlayingIndex = 0
+        if (disc_index == null) {
+          tracks.current =  [playingTrack, ...tracks.current.splice(0, maxTracks.current-1)]
           disc_index = 0
         }
 
         if (currentlyPlaying.is_playing) {
           newPlayingIndex = disc_index
         }
+
+        setIsPlaying(currentlyPlaying.is_playing)
+        setCurrentTrackName(playingTrack.name)
+        setCurrentArtist(currentlyPlaying.item.album.artists[0].name)
       } else {
-        
+        setIsPlaying(false)
       }
 
       setPlayingIndex(newPlayingIndex)
+      
     }
 
      
+  }
+
+  function playButtonPressed(newState: boolean) {
+    setIsPlaying(newState)
+    isPlayButtonPressed.current = true
+
+    if (newState) {
+      setPlayingIndex(lastPlayedIndex.current)
+      lastPlayedIndex.current = null
+    } else {
+      if (playingIndex != null) {
+        lastPlayedIndex.current = playingIndex
+      }
+      setPlayingIndex(null)
+    }
   }
 
   async function init() {
@@ -87,18 +104,16 @@ export default function Player() {
       return
     }
     accessToken.current = localStorage.getItem("spotify_access_token")
-    console.log(`player access token ${accessToken.current}`)
 
     if (accessToken.current) {
       const recentlyPlayed = await getRecentlyPlayed(accessToken.current, 4)
 
       let tracksArray: Track[] = []
       
-
       //add recently played
       let albumNames: string[] = []
       let i = 0
-      while (i < recentlyPlayed.items.length && tracksArray.length < maxTracks.current - 1) {
+      while (i < recentlyPlayed.items.length && tracksArray.length < maxTracks.current) {
         const track = recentlyPlayed.items[i]
         const t = {
           name: track.track.name,
@@ -113,10 +128,7 @@ export default function Player() {
 
         i += 1
       }
-
-      //add the next song as the last item
-
-      setTracks(tracksArray)
+      tracks.current = tracksArray
 
       const interval = setInterval(() => {
         handlePlaying();
@@ -131,10 +143,13 @@ export default function Player() {
   }, [])
 
   return (
-    <div className="flex flex-row items-center mt-10 gap-5 align-bottom justify-center">
-      {tracks.map((track, index) => (
-        <CD imageSrc={track.image} name={track.name} key={index} size={32} isSpinning={index == playingIndex}/>
-      ))}
+    <div className="flex flex-col items-center  gap-5 ">
+      <div className=" flex flex-row items-center gap-5 justify-center mt-10">
+        {tracks.current.map((track, index) => (
+          <CD imageSrc={track.image} name={track.name} key={index} isSpinning={index == playingIndex}/>
+        ))}
+      </div>
+      <Playback isPlaying={isPlaying} trackName={currentTrackName} artist={currentArtist} playButtonPressed={playButtonPressed}/>
     </div>
   )
 }

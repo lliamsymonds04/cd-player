@@ -1,5 +1,4 @@
-const scope = 'user-read-private user-read-email';
-const url = 'https://accounts.spotify.com/api/token'
+const scope = 'user-read-private user-read-email user-read-recently-played user-read-playback-state';
 
 function generateRandomString (length: number) {
     const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -11,7 +10,7 @@ function generateRandomString (length: number) {
 async function sha256 (plain: string)  {
     const encoder = new TextEncoder()
     const data = encoder.encode(plain)
-    return crypto.subtle.digest('SHA-256', data)
+    return window.crypto.subtle.digest('SHA-256', data)
 }
 
 function base64encode(input: ArrayBuffer)  {
@@ -21,13 +20,15 @@ function base64encode(input: ArrayBuffer)  {
       .replace(/\//g, '_');
 }
 
-const clientId = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
 const redirectUri = 'http://localhost:5173/spotify_callback';
 
-const codeVerifier  = generateRandomString(64);
 
 
-export async function authorizeSpotify() {
+export async function authorizeSpotify(clientId: string) {
+    const codeVerifier  = generateRandomString(64);
+
+    console.log(`auth code verififer ${codeVerifier}`)
+
     const hashed = await sha256(codeVerifier)
     const codeChallenge = base64encode(hashed);
 
@@ -42,11 +43,20 @@ export async function authorizeSpotify() {
 
     const authUrl = new URL("https://accounts.spotify.com/authorize")
     authUrl.search = new URLSearchParams(params).toString();
+    localStorage.setItem("code_verifier", codeVerifier)
+
 
     return authUrl.toString()   
 }
 
-export async function getAccessCode(code: string) {
+export async function getAccessCode(clientId: string, code: string) {
+    const codeVerifier = localStorage.getItem("code_verifier")
+
+    if (codeVerifier == null) {
+        throw("Code verifier was null")
+    }
+
+    console.log(`access code verififer ${codeVerifier}`)
     const payload = {
         method: 'POST',
         headers: {
@@ -61,26 +71,41 @@ export async function getAccessCode(code: string) {
         ]),
     }
     
-    const body = await fetch(url, payload);
+    const body = await fetch("https://accounts.spotify.com/api/token", payload);
     const response = await body.json();
 
-    localStorage.setItem('spotify_access_token', response.access_token);
-    return response.access_token
+    return response
 }
 
 export async function getRecentlyPlayed(access_code: string, limit: number) {
     const payload = {
-        method: 'POST',
+        method: 'GET',
         headers: {
             'Authorization': `Bearer ${access_code}`,
         },
-        body: new URLSearchParams([
-            ["limit", String(limit)]
-        ]),
+        
     }
 
-    const body = await fetch(url, payload)
+    const body = await fetch(`https://api.spotify.com/v1/me/player/recently-played`, payload) //?limit=${limit}
     const response = await body.json()
 
     return response
+}
+
+export async function getPlaying(access_code: string) {
+    const payload = {
+        method: "GET",
+        headers : {
+            'Authorization': `Bearer ${access_code}`,
+        }
+    }
+
+    const body = await fetch("https://api.spotify.com/v1/me/player", payload)
+
+    if (body.status == 200) { //currently playing
+        return await body.json()
+    } else {
+        //not playing
+
+    }
 }

@@ -10,13 +10,13 @@ export function meta({}: Route.MetaArgs) {
   ];
 }
 
-
+const clientId = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
 
 export default function Home() {
   const authUrl = useRef<string | null>(null)
 
   async function authorize() {
-    authUrl.current = await authorizeSpotify()
+    authUrl.current = await authorizeSpotify(clientId)
   }
 
   useEffect(() => {

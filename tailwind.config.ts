@@ -16,6 +16,9 @@ export default {
           '"Noto Color Emoji"',
         ],
       },
+      animation: {
+        'disc-spin': 'spin 2s linear infinite'
+      },
     },
   },
   plugins: [],

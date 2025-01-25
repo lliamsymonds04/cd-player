@@ -5,7 +5,7 @@ import { useNavigate, useLocation } from "react-router";
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "New React Router App" },
+    { title: "Connect Spotify" },
     { name: "description", content: "Welcome to React Router!" },
   ];
 }
@@ -25,16 +25,19 @@ export default function Home() {
 
   
 
-  return (<div>
-    <button
-      type="button"
-      onClick={() => {
-        if (authUrl.current) {
-          // navigate(authUrl.current)
-          window.location.href = authUrl.current
-
-        }
-      }}
-    >Auth</button>
+  return (<div className="flex justify-center">
+    <div className="bg-gray-900 rounded-xl mt-44 p-5 shadow-lg w-52 flex flex-col items-center gap-5">
+      <h1 className="font-bold text-4xl">CD Player</h1>
+      <p className="text-center w-40"> You need to connect to spotify for the player to work </p>
+      <button
+        className="bg-green-500 rounded-md p-2 font-bold text-lg mt-5"
+        type="button"
+        onClick={() => {
+          if (authUrl.current) {
+            window.location.href = authUrl.current
+          }
+        }}
+      >Connect Spotify</button>
+    </div>
   </div>);
 }

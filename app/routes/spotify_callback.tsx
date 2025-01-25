@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import type { Route } from "./+types/spotify_callback";
 import { useNavigate } from "react-router";
-import { getAccessCode } from "~/util/SpotifyUtils";
+import { getAccessCode, handleAccessTokenResponse } from "~/util/SpotifyUtils";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -31,9 +31,17 @@ export default function Spotify_Callback() {
       const response = await getAccessCode(clientId, code)
 
 
-      console.log(`access token ${response.access_token}`)
+      // console.log(`access token ${response.access_token}`)
 
-      localStorage.setItem("spotify_access_token", response.access_token)
+      // const currentTime = new Date().getTime()
+      // const expireTime = currentTime + (response.expires_in - 60) * 1000
+
+      // localStorage.setItem("spotify_access_token", response.access_token)
+      // localStorage.setItem("spotify_refresh_token", response.refresh_token)
+      // localStorage.setItem("spotify_token_expire_time", expireTime.toString())
+      if (response) {
+        handleAccessTokenResponse(response)
+      }
       
       navigate("/player")
       hasRun.current = false

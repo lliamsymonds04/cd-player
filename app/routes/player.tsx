@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { Route } from "./+types/player";
-import { getPlaying, getRecentlyPlayed } from "~/util/SpotifyUtils";
+import { getPlaying, getRecentlyPlayed, refreshSpotifyToken } from "~/util/SpotifyUtils";
 import CD from "~/components/CD";
 import Playback from "~/components/Playback";
 
@@ -36,13 +36,23 @@ export default function Player() {
   const maxTracks = useRef(5)
   const lastPlayedIndex = useRef<number | null>(0)
   const isPlayButtonPressed = useRef(false)
+  const isRefreshingToken = useRef(false)
   const [isPlaying, setIsPlaying] = useState(false)
   const [playingIndex, setPlayingIndex] = useState<number | null>()
   const [currentTrackName, setCurrentTrackName] = useState("")
   const [currentArtist, setCurrentArtist] = useState("")
 
   async function handlePlaying() {
-    if (accessToken.current) {
+    const currentTime = new Date().getTime()
+    const expireTime = Number(localStorage.getItem("spotify_token_expire_time"))
+
+    if (currentTime > expireTime && !isRefreshingToken.current) {
+      isRefreshingToken.current = true
+      await refreshSpotifyToken()
+      isRefreshingToken.current = false
+    }
+
+    if (accessToken.current && !isRefreshingToken.current) {
       const currentlyPlaying = await getPlaying(accessToken.current)
 
       if (isPlayButtonPressed.current) {

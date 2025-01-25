@@ -110,51 +110,69 @@ export async function getPlaying(access_code: string) {
     }
 }
 
-export async function playSpotify() {
+async function handlePlayback(url: string, method: string) {
     const access_token = localStorage.getItem("spotify_access_token")
-    console.log(access_token)
+
     const payload = {
-        method: "PUT",
+        method: method,
         headers : {
             'Authorization': `Bearer ${access_token}`,
         }
     }
 
-    const response = await fetch("https://api.spotify.com/v1/me/player/play", payload)
+    const response = await fetch(url, payload)
+    return response
+}
+
+export async function playSpotify() {
+    handlePlayback("https://api.spotify.com/v1/me/player/play", "PUT")
 }
 
 export async function pauseSpotify() {
-    const access_token = localStorage.getItem("spotify_access_token")
-    const payload = {
-        method: "PUT",
-        headers : {
-            'Authorization': `Bearer ${access_token}`,
-        }
-    }
-
-    const response = await fetch("https://api.spotify.com/v1/me/player/pause", payload)
+    handlePlayback("https://api.spotify.com/v1/me/player/pause", "PUT")
 }
 
 export async function skipTrack() {
-    const access_token = localStorage.getItem("spotify_access_token")
-    const payload = {
-        method: "POST",
-        headers : {
-            'Authorization': `Bearer ${access_token}`,
-        }
-    }
-
-    const response = await fetch("https://api.spotify.com/v1/me/player/next", payload)
+    handlePlayback("https://api.spotify.com/v1/me/player/next", "POST")
 }
 
 export async function previousTrack() {
-    const access_token = localStorage.getItem("spotify_access_token")
-    const payload = {
-        method: "POST",
-        headers : {
-            'Authorization': `Bearer ${access_token}`,
-        }
-    }
+    handlePlayback("https://api.spotify.com/v1/me/player/previous", "POST")
+}
 
-    const response = await fetch("https://api.spotify.com/v1/me/player/previous", payload)
+export async function refreshSpotifyToken() {
+    const refreshToken = localStorage.getItem("spotify_refresh_token")
+    const client_id: string = import.meta.env.VITE_SPOTIFY_CLIENT_ID
+    const client_secret: string = import.meta.env.VITE_SPOTIFY_CLIENT_SECRET
+
+    if (refreshToken) {
+        const refreshParams = {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+                Authorization: "Basic " + Buffer.from(client_id + ":" + client_secret).toString("base64"),
+            },
+            body: new URLSearchParams([
+                ["grant_type", "refresh_token"],
+                ["refresh_token", refreshToken],
+                ["client_id", client_id]
+            ])
+        }
+
+        const body = await fetch("https://accounts.spotify.com/api/token", refreshParams)
+        const response = await body.json()
+        
+        handleAccessTokenResponse(response)
+    }
+ 
+    
+}
+
+export function handleAccessTokenResponse(response: {[key: string]: any}) {
+    const currentTime = new Date().getTime()
+    const expireTime = currentTime + (response.expires_in - 60) * 1000
+
+    localStorage.setItem("spotify_access_token", response.access_token)
+    localStorage.setItem("spotify_refresh_token", response.refresh_token)
+    localStorage.setItem("spotify_token_expire_time", expireTime.toString())
 }

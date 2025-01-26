@@ -14,13 +14,17 @@ const clientId = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
 
 export default function Home() {
   const authUrl = useRef<string | null>(null)
+  const isInitialized = useRef(false)
 
   async function authorize() {
+    isInitialized.current = true
     authUrl.current = await authorizeSpotify(clientId)
   }
 
   useEffect(() => {
-    authorize()
+    if (!isInitialized.current) {
+      authorize()
+    }
   }, [])
 
   
@@ -35,6 +39,7 @@ export default function Home() {
         onClick={() => {
           if (authUrl.current) {
             window.location.href = authUrl.current
+            isInitialized.current = false
           }
         }}
       >Connect Spotify</button>

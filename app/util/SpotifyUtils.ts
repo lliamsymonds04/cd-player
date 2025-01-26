@@ -1,4 +1,4 @@
-const scope = 'user-read-private user-read-email user-read-recently-played user-read-playback-state user-modify-playback-state';
+const scope = 'user-read-private user-read-email user-read-recently-played user-read-playback-state user-modify-playback-state user-read-currently-playing';
 
 function generateRandomString (length: number) {
     const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -26,8 +26,6 @@ const redirectUri = 'http://localhost:5173/spotify_callback';
 
 export async function authorizeSpotify(clientId: string) {
     const codeVerifier  = generateRandomString(64);
-
-    console.log(`auth code verififer ${codeVerifier}`)
 
     const hashed = await sha256(codeVerifier)
     const codeChallenge = base64encode(hashed);
@@ -77,7 +75,7 @@ export async function getAccessCode(clientId: string, code: string) {
     return response
 }
 
-export async function getRecentlyPlayed(access_code: string, limit: number) {
+export async function getRecentlyPlayed(access_code: string) {
     const payload = {
         method: 'GET',
         headers: {
@@ -107,6 +105,20 @@ export async function getPlaying(access_code: string) {
     } else {
         //not playing
 
+    }
+}
+
+export async function getQueue(access_code: string) {
+    const payload = {
+        method: "GET",
+        headers : {
+            'Authorization': `Bearer ${access_code}`,
+        }
+    }
+
+    const body = await fetch("https://api.spotify.com/v1/me/player/queue", payload)
+    if (body.status == 200) { //currently playing
+        return await body.json()
     }
 }
 
@@ -150,7 +162,7 @@ export async function refreshSpotifyToken() {
             method: "POST",
             headers: {
                 "Content-Type": "application/x-www-form-urlencoded",
-                Authorization: "Basic " + Buffer.from(client_id + ":" + client_secret).toString("base64"),
+                // Authorization: "Basic " + Buffer.from(client_id + ":" + client_secret).toString("base64"),
             },
             body: new URLSearchParams([
                 ["grant_type", "refresh_token"],
@@ -161,7 +173,7 @@ export async function refreshSpotifyToken() {
 
         const body = await fetch("https://accounts.spotify.com/api/token", refreshParams)
         const response = await body.json()
-        
+
         handleAccessTokenResponse(response)
     }
  

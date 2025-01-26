@@ -40,7 +40,7 @@ function MediaButton({
 
 export default function Playback({trackName, isPlaying, artist, playButtonPressed}: {trackName: string, isPlaying: boolean, artist: string, playButtonPressed: (b: boolean) => void}) {
     return (
-        <div className="bg-slate-900 rounded-lg w-96 shadow-md flex flex-col items-center p-2">
+        <div className="bg-slate-900 rounded-lg w-96 shadow-md flex flex-col items-center p-2 relative">
             <div  className='flex flex-row  gap-2 items-center'>
                 <FontAwesomeIcon icon={faSpotify} size="xl"/>
                 <p className="font-bold text-lg text-center">{trackName}</p>
@@ -58,7 +58,6 @@ export default function Playback({trackName, isPlaying, artist, playButtonPresse
                         playSpotify()
                         playButtonPressed(true)
                     }
-                    // playButtonPressed(!isPlaying)
                 }} />
                 <MediaButton icon={faForwardStep} size="lg" onClick={() => {
                     skipTrack()

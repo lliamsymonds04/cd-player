@@ -16,7 +16,14 @@ export function meta({}: Route.MetaArgs) {
 interface Track {
   name: string,
   image: string,
-  album: string,
+}
+
+interface TrackObject {
+  track: Track,
+  position: number,
+  setPosition: React.Dispatch<React.SetStateAction<number>>,
+  setTrack: React.Dispatch<React.SetStateAction<Track>>,
+  id: number,
 }
 
 export default function Player() {
@@ -26,15 +33,31 @@ export default function Player() {
   const isRefreshingToken = useRef(false)
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentArtist, setCurrentArtist] = useState("")
-  const [recentlyPlayedTracks, setRecentlyPlayedTracks] = useState<Track[]>([])
   const playingRef = useRef<Track | null>(null)
 
   const [currentTrack, setCurrentTrack] = useState<Track>({
     name: "temp",
     image: "",
-    album: "temp",
   })
-  const [trackQueue, setTrackQueue] = useState<Track[]>([])
+  const trackCount = useRef(0)
+
+  const trackObjects: TrackObject[] = []
+  for (let i = 0; i < maxTracks.current* 2 + 3; i ++) {
+    const [position, setPosition] = useState(i - (maxTracks.current + 1))
+    const [track, setTrack] = useState<Track>({
+      name: "",
+      image: "",
+    })
+
+    trackObjects.push({
+      position: position,
+      setPosition: setPosition,
+      track: track,
+      setTrack: setTrack,
+      id: trackCount.current,
+    })
+    trackCount.current += 1
+  }
 
   async function updateQueue() {
     if (accessToken.current == null) {
@@ -44,19 +67,37 @@ export default function Player() {
     const usersQueue = await getQueue(accessToken.current)
 
     if (usersQueue) {
-      let newQueue = []
-      for (let i = 0; i < usersQueue.queue.length && i < maxTracks.current; i++) {
+      for (let i = 0; i < usersQueue.queue.length && i < maxTracks.current + 1; i++) {
         const trackInfo = usersQueue.queue[i]
         const track = {
           name: trackInfo.name,
           image: trackInfo.album.images[0].url,
-          album: trackInfo.album.name
         }
+        console.log(track.name)
 
-        newQueue.push(track)
+        trackObjects[maxTracks.current + 2 + i].setTrack(track)
       }
+    }
+  }
 
-      setTrackQueue(newQueue)
+  function shiftCdsLeft() {
+    console.log(trackObjects)
+    const front = trackObjects.shift()
+    for (let i = 1; i < trackObjects.length; i ++) {
+      const obj = trackObjects[i]
+      obj.setPosition((oldPos) => {
+        console.log(`${obj.track.name} new pos ${oldPos - 1}`)
+        return oldPos - 1
+      })
+    }
+
+    if (front) {
+      trackObjects.push(front)
+      front.setPosition(maxTracks.current + 1)
+      front.setTrack({
+        name: "",
+        image: "",
+      })
     }
   }
 
@@ -64,6 +105,7 @@ export default function Player() {
     const currentTime = new Date().getTime()
     const expireTime = Number(localStorage.getItem("spotify_token_expire_time"))
 
+    //handle refresh token
     if (currentTime > expireTime && !isRefreshingToken.current) {
       isRefreshingToken.current = true
       await refreshSpotifyToken()
@@ -92,23 +134,15 @@ export default function Player() {
         setCurrentArtist(currentlyPlaying.item.album.artists[0].name)
 
         if (playingRef.current == null || playingTrack.name != playingRef.current.name) {
-          if (playingRef.current) {
-            //move the current playing to recently played
-            const storeRef = {
-              name: playingRef.current.name,
-              album: playingRef.current.album,
-              image: playingRef.current.image,
-            }
-            setRecentlyPlayedTracks((prev) => {
-              // if (playingRef.current){
-              const updatedList = [...prev, storeRef ];
-              return updatedList.slice(-maxTracks.current);
-              // }
-              // return prev
-            });
+
+          if (playingRef.current != null) {
+            shiftCdsLeft()
           }
 
+          trackObjects[maxTracks.current + 1].setTrack(playingTrack)
           playingRef.current = playingTrack
+
+
           updateQueue()
         }
       } else {
@@ -135,18 +169,14 @@ export default function Player() {
 
       let tracksArray: Track[] = []
       
-      for (let i = 0; i < recentlyPlayed.items.length && tracksArray.length < maxTracks.current; i ++) {
+      for (let i = 0; i < recentlyPlayed.items.length && i < maxTracks.current; i ++) {
         const track = recentlyPlayed.items[i]
-        const t = {
+        trackObjects[i + 1].setTrack({
           name: track.track.name,
           image: track.track.album.images[0].url,
-          album: track.track.album.name,
-        }
-
-        tracksArray.unshift(t)
+        })
+        trackObjects[i + 1].setPosition(-1-i)
       }
-
-      setRecentlyPlayedTracks(tracksArray)
 
       const interval = setInterval(() => {
         handlePlaying();
@@ -164,23 +194,20 @@ export default function Player() {
   const scaleFactor = 0.125
 
   return (
-    <div className="flex flex-col items-center  gap-5 ">
+    <div className="flex flex-col items-center  gap-5 mt-5">
       <div className="relative w-full" style={{height: `${cdRem}rem`}}>
-        {recentlyPlayedTracks.map((track, index) => (
-          <CD imageSrc={track.image} name={track.name} key={index} isSpinning={false} size={cdRem} className={'absolute z-10'} style={{
-            left: `calc(50% - ${(maxTracks.current - index + 1) * cdRem/2}rem)`,
-            transform: `scale(${1 - ((maxTracks.current - index) * scaleFactor)})`
+        {trackObjects.map((obj, index) => (
+          <CD imageSrc={obj.track.image} name={obj.track.name} key={index} isSpinning={obj.position == 0 && isPlaying} size={
+            Math.abs(obj.position) == maxTracks.current + 1 ? 0:
+            cdRem * (1 - ((Math.abs(obj.position)) * scaleFactor))
+          } className={"absolute top-1/2"} style={{
+            left: obj.position == 0 ? `calc(50%)`:
+              obj.position < 0 ? `calc(50% + ${obj.position * cdRem/2}rem)`
+              : `calc(50% + ${obj.position * cdRem/2}rem)`,
+            
+            zIndex: obj.position == 0 ? 10 : 10 - Math.abs(obj.position),
           }}/>
         ))}
-        <CD imageSrc={currentTrack.image} name={currentTrack.name} isSpinning={isPlaying} className={'absolute z-50'} style={{left: `calc(50% - ${cdRem/2}rem)`}} size={cdRem}/>
-        {trackQueue.map((track, index) => (
-          <CD imageSrc={track.image} name={track.name} key={index} isSpinning={false} size={cdRem} className={'absolute '} style={{
-            left: `calc(50% + ${(index) * cdRem/2}rem)`,
-            transform: `scale(${1 - ((index + 1) * scaleFactor)})`,
-            zIndex: `${(maxTracks.current - index)}`
-          }}/>
-        ))}
-        
       </div>
       <Playback isPlaying={isPlaying} trackName={currentTrack.name} artist={currentArtist} playButtonPressed={playButtonPressed}/>
     </div>

@@ -26,15 +26,17 @@ export default function CD({imageSrc, name, isSpinning, className, style, size}:
 
     const combinedStyle: React.CSSProperties = {
         ...style,
-        animationPlayState: isSpinning ? 'running' : 'paused',
         width: `${size}rem`
       };
+
     return (
         <div className={clsx(
-            "rounded-full overflow-hidden shadow-lg animate-disc-spin",
+            "rounded-full overflow-hidden shadow-lg  bg-slate-900 transition-all duration-500 -translate-x-1/2 -translate-y-1/2",
             className
           )} style={combinedStyle}>
-            <img src={imageSrc} alt={name} className="w-full h-full object-cover"/>
+            {
+                imageSrc != "" && <img src={imageSrc} alt={name} className="w-full h-full object-cover animate-disc-spin" style={{animationPlayState: isSpinning ? 'running' : 'paused',}}/>
+            }
             <div 
                 className={`absolute top-0 left-0 w-full h-full bg-black transition-opacity duration-300 ${isSpinning ? 'opacity-0' : 'opacity-50'}`}
             />

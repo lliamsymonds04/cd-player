@@ -4,6 +4,7 @@ import { getPlaying, getQueue, getRecentlyPlayed, refreshSpotifyToken } from "~/
 import CD from "~/components/CD";
 import Playback from "~/components/Playback";
 import { motion } from "framer-motion";
+import useScreenWidth from "~/util/UseScreenWidth";
 
 
 export function meta({}: Route.MetaArgs) {
@@ -196,7 +197,8 @@ export default function Player() {
     init()
   }, [])
 
-  const cdRem = 40
+  const screenWidth = useScreenWidth();
+  const cdRem = screenWidth < 800 ? 12: screenWidth < 1100 ? 20 : screenWidth < 1920 ? 28 : 45;
   const scaleFactor = 0.125
 
   return (

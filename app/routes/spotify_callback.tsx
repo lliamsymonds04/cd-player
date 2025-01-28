@@ -21,24 +21,11 @@ export default function Spotify_Callback() {
 
   const hasRun = useRef(false)
 
-  console.log(code)
-
   async function init() {
     if (code && !hasRun.current) {
       hasRun.current = true
-      console.log("ran the init")
 
       const response = await getAccessCode(clientId, code)
-
-
-      // console.log(`access token ${response.access_token}`)
-
-      // const currentTime = new Date().getTime()
-      // const expireTime = currentTime + (response.expires_in - 60) * 1000
-
-      // localStorage.setItem("spotify_access_token", response.access_token)
-      // localStorage.setItem("spotify_refresh_token", response.refresh_token)
-      // localStorage.setItem("spotify_token_expire_time", expireTime.toString())
       if (response) {
         handleAccessTokenResponse(response)
       }
@@ -54,8 +41,6 @@ export default function Spotify_Callback() {
   }, [code])
 
   return (
-      <div>
-          <h1>IT WORKED</h1>
-      </div>
+      <div/>
   )
 }

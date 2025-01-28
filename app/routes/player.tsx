@@ -33,11 +33,11 @@ export default function Player() {
   const isPlayButtonPressed = useRef(false)
   const isRefreshingToken = useRef(false)
   const [isPlaying, setIsPlaying] = useState(false)
-  // const [currentArtist, setCurrentArtist] = useState("")
   const playingRef = useRef<Track | null>(null)
   const [isLoaded, setIsLoaded] = useState(false)
   const trackCount = useRef(0)
   const cdShiftDebounce = useRef(false)
+  const [playbackPosition, setPlaybackPosition] = useState(0)
 
   const trackObjects: TrackObject[] = []
   for (let i = 0; i < maxTracks.current* 2 + 3; i ++) {
@@ -76,18 +76,15 @@ export default function Player() {
           artist: trackInfo.album.artists[0].name,
         }
 
-        // trackObjects[maxTracks.current + 2 + i].setTrack(track)
         trackObjects[(trackPointer.current + 1 + i)%(maxTracks.current* 2 + 3)].setTrack(track)
       }
     }
   }
 
   function shiftCdsLeft() {
-    // const front = trackObjects.shift()
     for (let i = 0; i < trackObjects.length; i ++) {
       const obj = trackObjects[i]
       obj.setPosition((oldPos) => {
-        // return oldPos - 1
         if (oldPos == -(maxTracks.current + 1)) {
           return maxTracks.current + 1
         } else {
@@ -97,16 +94,6 @@ export default function Player() {
     }
 
     trackPointer.current = (trackPointer.current + 1)%(maxTracks.current * 2 + 3)
-
-    // if (front) {
-    //   trackObjects.push(front)
-    //   front.setPosition(maxTracks.current + 1)
-    //   front.setTrack({
-    //     name: "",
-    //     image: "",
-    //   })
-    // }
-
   }
 
   async function handlePlaying() {
@@ -138,6 +125,13 @@ export default function Player() {
         }
 
         setIsPlaying(currentlyPlaying.is_playing)
+
+        //calc the progress
+        if (currentlyPlaying.progress_ms) {
+          setPlaybackPosition(currentlyPlaying.progress_ms/currentlyPlaying.item.duration_ms)
+        } else {
+          setPlaybackPosition(0)
+        }
 
         if (playingRef.current == null || playingTrack.name != playingRef.current.name) {
 
@@ -221,7 +215,7 @@ export default function Player() {
           }} position={obj.position}/>
         ))}
       </motion.div>
-      <Playback isPlaying={isPlaying} trackName={trackObjects[trackPointer.current].track.name} artist={trackObjects[trackPointer.current].track.artist} playButtonPressed={playButtonPressed} skipButtonPressed={skipButtonPressed}/>
+      <Playback isPlaying={isPlaying} trackName={trackObjects[trackPointer.current].track.name} artist={trackObjects[trackPointer.current].track.artist} playButtonPressed={playButtonPressed} skipButtonPressed={skipButtonPressed} playbackPosition={playbackPosition}/>
     </div>
   )
 }

@@ -30,7 +30,9 @@ function MediaButton({icon, onClick, size,}: {icon: IconProp; onClick: () => voi
     );
 }
 
-export default function Playback({trackName, isPlaying, artist, playButtonPressed, skipButtonPressed}: {trackName: string, isPlaying: boolean, artist: string, playButtonPressed: (b: boolean) => void, skipButtonPressed: () => void}) {
+interface PlaybackProps {trackName: string, isPlaying: boolean, artist: string, playButtonPressed: (b: boolean) => void, skipButtonPressed: () => void, playbackPosition: number}
+
+export default function Playback({trackName, isPlaying, artist, playButtonPressed, skipButtonPressed, playbackPosition}: PlaybackProps) {
     return (
         <div className="bg-slate-900 rounded-lg w-96 shadow-md flex flex-col items-center p-2 relative">
             <div  className='flex flex-row  gap-2 items-center'>
@@ -56,7 +58,10 @@ export default function Playback({trackName, isPlaying, artist, playButtonPresse
                     skipButtonPressed()
                 }}/>
             </div>
+
+            <div className='bg-slate-800 rounded-full w-72 h-2 mt-4 mb-2'>
+                <div className='h-full bg-slate-200 rounded-full transition-all duration-1000 ease-linear' style={{width: `${playbackPosition*100}%`}}/>
+            </div>
         </div>
     )
-
 }

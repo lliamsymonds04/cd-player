@@ -20,7 +20,9 @@ export default function CD({imageSrc, name, isSpinning, className, style, size, 
             className
           )} style={combinedStyle}>
             {
-                imageSrc != "" && <img src={imageSrc} alt={name} className="w-full h-full object-cover animate-disc-spin" style={{animationPlayState: isSpinning ? 'running' : 'paused',}}/>
+                imageSrc != "" && (position == 0 ? <img src={imageSrc} alt={name} className="w-full h-full object-cover animate-disc-spin" style={{animationPlayState: isSpinning ? 'running' : 'paused',}}/>
+                    : <img src={imageSrc} alt={name} className="w-full h-full object-cover"/>
+                )
             }
             <div 
                 className={`absolute top-0 left-0 w-full h-full bg-black transition-opacity duration-300 `}

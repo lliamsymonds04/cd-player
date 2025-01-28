@@ -15,13 +15,15 @@ const clientId = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
 export default function Spotify_Callback() {
   const navigate = useNavigate()  
 
-  const qString = window.location.search;
-  const urlSearch = new URLSearchParams(qString);
-  const code = urlSearch.get("code");
+  
 
   const hasRun = useRef(false)
 
   async function init() {
+    const qString = window.location.search;
+    const urlSearch = new URLSearchParams(qString);
+    const code = urlSearch.get("code");
+
     if (code && !hasRun.current) {
       hasRun.current = true
 
@@ -38,7 +40,7 @@ export default function Spotify_Callback() {
 
   useEffect(() => {
     init()
-  }, [code])
+  }, [])
 
   return (
       <div/>

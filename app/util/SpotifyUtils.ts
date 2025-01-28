@@ -24,9 +24,10 @@ function base64encode(input: ArrayBuffer)  {
 
 function getRedirectUri() {
     const domain = window.location.hostname;
+    console.log(domain)
 
     let base = "http://localhost:5173"
-    if (domain == "playcds.netlify.app/") {
+    if (domain == "playcds.netlify.app") {
         base = "https://playcds.netlify.app/"
     }
 

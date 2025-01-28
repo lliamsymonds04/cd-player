@@ -20,9 +20,18 @@ function base64encode(input: ArrayBuffer)  {
       .replace(/\//g, '_');
 }
 
-const redirectUri = 'http://localhost:5173/spotify_callback';
+// const redirectUri = 'http://localhost:5173/spotify_callback';
 
+function getRedirectUri() {
+    const domain = window.location.hostname;
 
+    let base = "http://localhost:5173"
+    if (domain == "playcds.netlify.app/") {
+        base = "https://playcds.netlify.app/"
+    }
+
+    return base + "/spotify_callback"
+}
 
 export async function authorizeSpotify(clientId: string) {
     const codeVerifier  = generateRandomString(64);
@@ -36,7 +45,7 @@ export async function authorizeSpotify(clientId: string) {
         scope,
         code_challenge_method: 'S256',
         code_challenge: codeChallenge,
-        redirect_uri: redirectUri,
+        redirect_uri: getRedirectUri(),
     }
 
     const authUrl = new URL("https://accounts.spotify.com/authorize")
@@ -64,7 +73,7 @@ export async function getAccessCode(clientId: string, code: string) {
             ["client_id", clientId],
             ["grant_type", 'authorization_code'],
             ["code", code],
-            ["redirect_uri", redirectUri],
+            ["redirect_uri", getRedirectUri()],
             ["code_verifier", codeVerifier]
         ]),
     }
@@ -155,7 +164,6 @@ export async function previousTrack() {
 export async function refreshSpotifyToken() {
     const refreshToken = localStorage.getItem("spotify_refresh_token")
     const client_id: string = import.meta.env.VITE_SPOTIFY_CLIENT_ID
-    const client_secret: string = import.meta.env.VITE_SPOTIFY_CLIENT_SECRET
 
     if (refreshToken) {
         const refreshParams = {

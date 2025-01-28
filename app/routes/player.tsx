@@ -203,21 +203,27 @@ export default function Player() {
 
   return (
     <div className="flex flex-col items-center  gap-5 mt-5">
-      <motion.div className="relative w-full" style={{height: `${cdRem}rem`}} initial={{ opacity: 0, scale: 0.9 }} animate={isLoaded ? { opacity: 1, scale: 1 }: { opacity: 0 }} transition={{ duration: 0.5, ease: "easeOut" }}>
-        {trackObjects.map((obj, index) => (
-          <CD imageSrc={obj.track.image} name={obj.track.name} key={index} isSpinning={obj.position == 0 && isPlaying} size={
-            Math.abs(obj.position) == maxTracks.current + 1 ? 0:
-            cdRem * (1 - ((Math.abs(obj.position)) * scaleFactor))
-          } className={"absolute top-1/2"} style={{
-            left: obj.position == 0 ? `calc(50%)`:
-              obj.position < 0 ? `calc(50% + ${obj.position * cdRem/2}rem)`
-              : `calc(50% + ${obj.position * cdRem/2}rem)`,
-            
-            zIndex: obj.position == 0 ? 10 : 10 - Math.abs(obj.position),
-          }} position={obj.position}/>
-        ))}
-      </motion.div>
-      <Playback isPlaying={isPlaying} trackName={trackObjects[trackPointer.current].track.name} artist={trackObjects[trackPointer.current].track.artist} playButtonPressed={playButtonPressed} skipButtonPressed={skipButtonPressed} playbackPosition={playbackPosition}/>
+      {isLoaded ? <div className="flex flex-col items-center  gap-5 mt-5 relative h-full">
+        <motion.div className="relative w-full" style={{height: `${cdRem}rem`}} initial={{ opacity: 0, scale: 0.9 }} animate={isLoaded ? { opacity: 1, scale: 1 }: { opacity: 0 }} transition={{ duration: 0.5, ease: "easeOut" }}>
+          {trackObjects.map((obj, index) => (
+            <CD imageSrc={obj.track.image} name={obj.track.name} key={index} isSpinning={obj.position == 0 && isPlaying} size={
+              Math.abs(obj.position) == maxTracks.current + 1 ? 0:
+              cdRem * (1 - ((Math.abs(obj.position)) * scaleFactor))
+            } className={"absolute top-1/2"} style={{
+              left: obj.position == 0 ? `calc(50%)`:
+                obj.position < 0 ? `calc(50% + ${obj.position * cdRem/2}rem)`
+                : `calc(50% + ${obj.position * cdRem/2}rem)`,
+              
+              zIndex: obj.position == 0 ? 10 : 10 - Math.abs(obj.position),
+            }} position={obj.position}/>
+          ))}
+        </motion.div>
+        <Playback isPlaying={isPlaying} trackName={trackObjects[trackPointer.current].track.name} artist={trackObjects[trackPointer.current].track.artist} playButtonPressed={playButtonPressed} skipButtonPressed={skipButtonPressed} playbackPosition={playbackPosition}/>
+      </div> : <div className="absolute flex flex-col items-center top-1/3 animate-bob">
+        <p className="text-xl italic">It's all silent now </p>
+        <p className="text-xl drop-shadow-md">Play something to start the party </p>
+        
+      </div>}
     </div>
   )
 }

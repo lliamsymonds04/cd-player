@@ -16,8 +16,15 @@ export default {
           '"Noto Color Emoji"',
         ],
       },
+      keyframes: {
+        bob: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-7%)' },
+        },
+      },
       animation: {
-        'disc-spin': 'spin 2s linear infinite'
+        'disc-spin': 'spin 2s linear infinite',
+        bob: 'bob 2s ease-in-out infinite',
       },
     },
   },

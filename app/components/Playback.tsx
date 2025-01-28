@@ -5,15 +5,7 @@ import type { IconProp, SizeProp } from '@fortawesome/fontawesome-svg-core'
 import { pauseSpotify, playSpotify, previousTrack, skipTrack } from '~/util/SpotifyUtils'
 import { useState } from 'react'
 
-function MediaButton({
-    icon,
-    onClick,
-    size,
-}: {
-    icon: IconProp;
-    onClick: () => void;
-    size: SizeProp;
-}) {
+function MediaButton({icon, onClick, size,}: {icon: IconProp; onClick: () => void; size: SizeProp;}) {
     const [isClicked, setIsClicked] = useState(false);
 
     const handleClick = () => {
@@ -38,7 +30,7 @@ function MediaButton({
     );
 }
 
-export default function Playback({trackName, isPlaying, artist, playButtonPressed}: {trackName: string, isPlaying: boolean, artist: string, playButtonPressed: (b: boolean) => void}) {
+export default function Playback({trackName, isPlaying, artist, playButtonPressed, skipButtonPressed}: {trackName: string, isPlaying: boolean, artist: string, playButtonPressed: (b: boolean) => void, skipButtonPressed: () => void}) {
     return (
         <div className="bg-slate-900 rounded-lg w-96 shadow-md flex flex-col items-center p-2 relative">
             <div  className='flex flex-row  gap-2 items-center'>
@@ -61,6 +53,7 @@ export default function Playback({trackName, isPlaying, artist, playButtonPresse
                 }} />
                 <MediaButton icon={faForwardStep} size="lg" onClick={() => {
                     skipTrack()
+                    skipButtonPressed()
                 }}/>
             </div>
         </div>

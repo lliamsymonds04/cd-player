@@ -20,11 +20,10 @@ function base64encode(input: ArrayBuffer)  {
       .replace(/\//g, '_');
 }
 
-// const redirectUri = 'http://localhost:5173/spotify_callback';
-
 function getRedirectUri() {
     const domain = window.location.hostname;
     console.log(domain)
+
 
     let base = "http://localhost:5173"
     if (domain == "playcds.netlify.app") {

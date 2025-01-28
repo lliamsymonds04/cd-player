@@ -4,23 +4,6 @@ import clsx from "clsx";
 
 const hole_ratio = 1/6
 
-// export default function CD({imageSrc, name, isSpinning, style}: {imageSrc: string, name: string, isSpinning: boolean, style: React.CSSProperties}) {
-//     const holeSize = (hole_ratio * 100).toString()
-
-//     style.animationPlayState = isSpinning ? 'running': 'paused'
-
-//     return (
-//         <div className={`relative rounded-full overflow-hidden shadow-lg animate-disc-spin`} style={style}>
-//             <img src={imageSrc} alt={name} className="w-full h-full object-cover"/>
-//             <div 
-//                 className={`absolute top-0 left-0 w-full h-full bg-black transition-opacity duration-300 ${isSpinning ? 'opacity-0' : 'opacity-50'}`}
-//             />
-//             <div style={{ width: `${holeSize}%`, height: `${holeSize}%` }} className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gray-950 rounded-full shadow-inner`}/>
-
-//         </div>
-//     )
-// }
-
 interface paramsCD {imageSrc: string, name: string, isSpinning: boolean, className: string, style: React.CSSProperties, size: number, position: number}
 
 export default function CD({imageSrc, name, isSpinning, className, style, size, position}: paramsCD) {
@@ -40,7 +23,6 @@ export default function CD({imageSrc, name, isSpinning, className, style, size, 
                 imageSrc != "" && <img src={imageSrc} alt={name} className="w-full h-full object-cover animate-disc-spin" style={{animationPlayState: isSpinning ? 'running' : 'paused',}}/>
             }
             <div 
-                // className={`absolute top-0 left-0 w-full h-full bg-black transition-opacity duration-300 ${isSpinning ? 'opacity-0' : 'opacity-50'}`}
                 className={`absolute top-0 left-0 w-full h-full bg-black transition-opacity duration-300 `}
                 style = {{
                     opacity: isSpinning ? 0 : (0.5 + Math.abs(position) * 0.1)

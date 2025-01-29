@@ -1,5 +1,11 @@
 # CD Player
-Connects to spotify and displays currently, playing, recently playing
+Connects to spotify and displays album covers as CDs
+
+Shows: 
+* currently playing
+* recently playing
+* users queue
+* media controller
 
 *requires spotify premium for full functionality*
 

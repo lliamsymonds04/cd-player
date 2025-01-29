@@ -1,7 +1,7 @@
 # CD Player
 Connects to spotify and displays album covers as CDs
 
-Shows: 
+**Shows:** 
 * currently playing
 * recently playing
 * users queue

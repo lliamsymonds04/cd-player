@@ -33,12 +33,14 @@ export default function Player() {
   const maxTracks = useRef(2)
   const isPlayButtonPressed = useRef(false)
   const isRefreshingToken = useRef(false)
-  const [isPlaying, setIsPlaying] = useState(false)
   const playingRef = useRef<Track | null>(null)
-  const [isLoaded, setIsLoaded] = useState(false)
   const trackCount = useRef(0)
   const cdShiftDebounce = useRef(false)
+  const trackPointer = useRef(maxTracks.current + 1)
+  const [isPlaying, setIsPlaying] = useState(false)
+  const [isLoaded, setIsLoaded] = useState(false)
   const [playbackPosition, setPlaybackPosition] = useState(0)
+  const [isLandscape, setIsLandscape] = useState(false)
 
   const trackObjects: TrackObject[] = []
   for (let i = 0; i < maxTracks.current* 2 + 3; i ++) {
@@ -58,8 +60,6 @@ export default function Player() {
     })
     trackCount.current += 1
   }
-
-  const trackPointer = useRef(maxTracks.current + 1)
 
   async function updateQueue() {
     if (accessToken.current == null) {
@@ -195,6 +195,14 @@ export default function Player() {
 
   useEffect(() => {
     init()
+
+    const handleOrientationChange = (e: MediaQueryListEvent) => {
+      setIsLandscape(e.matches);
+    };
+
+    const mediaQuery = window.matchMedia('(orientation: landscape)');
+    mediaQuery.addEventListener('change', handleOrientationChange);
+    setIsLandscape(mediaQuery.matches);
   }, [])
 
   const screenWidth = useScreenWidth();
@@ -203,26 +211,28 @@ export default function Player() {
 
   return (
     <div className="flex flex-col items-center  gap-5 mt-5">
-      {isLoaded ? <div className="flex flex-col items-center  gap-5 mt-5 relative h-full">
-        <motion.div className="relative w-full" style={{height: `${cdRem}rem`}} initial={{ opacity: 0, scale: 0.9 }} animate={isLoaded ? { opacity: 1, scale: 1 }: { opacity: 0 }} transition={{ duration: 0.5, ease: "easeOut" }}>
-          {trackObjects.map((obj, index) => (
-            <CD imageSrc={obj.track.image} name={obj.track.name} key={index} isSpinning={obj.position == 0 && isPlaying} size={
-              Math.abs(obj.position) == maxTracks.current + 1 ? 0:
-              cdRem * (1 - ((Math.abs(obj.position)) * scaleFactor))
-            } className={"absolute top-1/2"} style={{
-              left: obj.position == 0 ? `calc(50%)`:
-                obj.position < 0 ? `calc(50% + ${obj.position * cdRem/2}rem)`
-                : `calc(50% + ${obj.position * cdRem/2}rem)`,
-              
-              zIndex: obj.position == 0 ? 10 : 10 - Math.abs(obj.position),
-            }} position={obj.position}/>
-          ))}
-        </motion.div>
-        <Playback isPlaying={isPlaying} trackName={trackObjects[trackPointer.current].track.name} artist={trackObjects[trackPointer.current].track.artist} playButtonPressed={playButtonPressed} skipButtonPressed={skipButtonPressed} playbackPosition={playbackPosition}/>
-      </div> : <div className="absolute flex flex-col items-center top-1/3 animate-bob">
-        <p className="text-xl italic">It's all silent now </p>
-        <p className="text-xl drop-shadow-md">Play something to start the party </p>
-        
+      {isLandscape ? 
+        (isLoaded ? <div className="flex flex-col items-center  gap-5 mt-5 relative h-full">
+          <motion.div className="relative w-full" style={{height: `${cdRem}rem`}} initial={{ opacity: 0, scale: 0.9 }} animate={isLoaded ? { opacity: 1, scale: 1 }: { opacity: 0 }} transition={{ duration: 0.5, ease: "easeOut" }}>
+            {trackObjects.map((obj, index) => (
+              <CD imageSrc={obj.track.image} name={obj.track.name} key={index} isSpinning={obj.position == 0 && isPlaying} size={
+                Math.abs(obj.position) == maxTracks.current + 1 ? 0:
+                cdRem * (1 - ((Math.abs(obj.position)) * scaleFactor))
+              } className={"absolute top-1/2"} style={{
+                left: obj.position == 0 ? `calc(50%)`:
+                  obj.position < 0 ? `calc(50% + ${obj.position * cdRem/2}rem)`
+                  : `calc(50% + ${obj.position * cdRem/2}rem)`,
+                
+                zIndex: obj.position == 0 ? 10 : 10 - Math.abs(obj.position),
+              }} position={obj.position}/>
+            ))}
+          </motion.div>
+          <Playback isPlaying={isPlaying} trackName={trackObjects[trackPointer.current].track.name} artist={trackObjects[trackPointer.current].track.artist} playButtonPressed={playButtonPressed} skipButtonPressed={skipButtonPressed} playbackPosition={playbackPosition}/>
+        </div> : <div className="absolute flex flex-col items-center top-1/3 animate-bob">
+          <p className="text-xl italic">It's all silent now </p>
+          <p className="text-xl drop-shadow-md">Play something to start the party </p>  
+        </div>) : <div className="relative flex flex-col items-center top-1/3">
+          <p className="text-xl italic">Turn the device horizontally</p>
       </div>}
     </div>
   )

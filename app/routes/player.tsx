@@ -232,7 +232,9 @@ export default function Player() {
           <p className="text-xl italic">It's all silent now </p>
           <p className="text-xl drop-shadow-md">Play something to start the party </p>  
         </div>) : <div className="relative flex flex-col items-center ">
-          <p className="text-xl italic absolute top-1/3">Turn the device horizontally</p>
+          <div className="absolute top-1/3">
+            <p className="text-xl italic ">Turn the device horizontally</p>
+          </div>
       </div>}
     </div>
   )
